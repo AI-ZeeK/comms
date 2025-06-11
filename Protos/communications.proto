@@ -1,0 +1,167 @@
+syntax = "proto3";
+
+option csharp_namespace = "Comms.Grpc";
+
+package communications;
+
+// Communications service definition
+service Communications {
+  // Chat operations
+  rpc CreateChat (CreateChatRequest) returns (ChatResponse);
+  rpc GetUserChats (GetUserChatsRequest) returns (GetUserChatsResponse);
+  rpc GetChatMessages (GetChatMessagesRequest) returns (GetChatMessagesResponse);
+  rpc SendMessage (SendMessageRequest) returns (MessageResponse);
+  rpc MarkMessageAsRead (MarkMessageAsReadRequest) returns (MarkMessageAsReadResponse);
+  
+  // Participant operations
+  rpc AddParticipant (AddParticipantRequest) returns (ParticipantResponse);
+  rpc RemoveParticipant (RemoveParticipantRequest) returns (ParticipantResponse);
+  
+  // Push notification operations
+  rpc AddPushSubscription (AddPushSubscriptionRequest) returns (PushSubscriptionResponse);
+  rpc RemovePushSubscription (RemovePushSubscriptionRequest) returns (PushSubscriptionResponse);
+}
+
+// Message types
+message CreateChatRequest {
+  string name = 1;
+  string chat_type = 2;
+  repeated string participant_ids = 3;
+  string creator_id = 4;
+}
+
+message ChatResponse {
+  string chat_id = 1;
+  string name = 2;
+  string chat_type = 3;
+  string created_at = 4;
+  repeated Participant participants = 5;
+}
+
+message GetUserChatsRequest {
+  string user_id = 1;
+  int32 page = 2;
+  int32 page_size = 3;
+}
+
+message GetUserChatsResponse {
+  repeated ChatSummary chats = 1;
+  int32 total_count = 2;
+}
+
+message ChatSummary {
+  string chat_id = 1;
+  string name = 2;
+  string chat_type = 3;
+  string last_message = 4;
+  string last_message_at = 5;
+  int32 unread_count = 6;
+  repeated Participant participants = 7;
+}
+
+message GetChatMessagesRequest {
+  string chat_id = 1;
+  string user_id = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+}
+
+message GetChatMessagesResponse {
+  repeated Message messages = 1;
+  int32 total_count = 2;
+}
+
+message SendMessageRequest {
+  string chat_id = 1;
+  string sender_id = 2;
+  string content = 3;
+  string message_type = 4;
+  string file_url = 5;
+  int64 file_size = 6;
+  string file_type = 7;
+}
+
+message MessageResponse {
+  string message_id = 1;
+  string chat_id = 2;
+  string sender_id = 3;
+  string content = 4;
+  string message_type = 5;
+  string status = 6;
+  string created_at = 7;
+  string file_url = 8;
+  int64 file_size = 9;
+  string file_type = 10;
+}
+
+message MarkMessageAsReadRequest {
+  string message_id = 1;
+  string user_id = 2;
+}
+
+message MarkMessageAsReadResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message AddParticipantRequest {
+  string chat_id = 1;
+  string user_id = 2;
+  string added_by = 3;
+}
+
+message RemoveParticipantRequest {
+  string chat_id = 1;
+  string user_id = 2;
+  string removed_by = 3;
+}
+
+message ParticipantResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message AddPushSubscriptionRequest {
+  string user_id = 1;
+  string endpoint = 2;
+  string p256dh = 3;
+  string auth = 4;
+  string platform = 5;
+}
+
+message RemovePushSubscriptionRequest {
+  string user_id = 1;
+  string endpoint = 2;
+}
+
+message PushSubscriptionResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+// Common types
+message Message {
+  string message_id = 1;
+  string chat_id = 2;
+  string sender_id = 3;
+  string content = 4;
+  string message_type = 5;
+  string status = 6;
+  string created_at = 7;
+  string file_url = 8;
+  int64 file_size = 9;
+  string file_type = 10;
+  repeated MessageRead read_by = 11;
+}
+
+message MessageRead {
+  string user_id = 1;
+  string read_at = 2;
+}
+
+message Participant {
+  string user_id = 1;
+  bool is_admin = 2;
+  string joined_at = 3;
+  bool is_active = 4;
+} 

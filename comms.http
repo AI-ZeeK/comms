@@ -1,0 +1,6 @@
+@comms_HostAddress = http://localhost:5028
+
+GET {{comms_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
