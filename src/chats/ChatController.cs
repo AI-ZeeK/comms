@@ -4,11 +4,12 @@ using Microsoft.EntityFrameworkCore;
 using Comms.Data;
 using Comms.Models;
 using Comms.Services;
+using Comms.Constants;
 
 namespace Comms.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route(ApiConstants.API_VERSION + "/[controller]")]
     [Authorize]
     public class ChatController : ControllerBase
     {

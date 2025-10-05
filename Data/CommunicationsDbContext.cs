@@ -15,6 +15,7 @@ namespace Comms.Data
         public DbSet<MessageRead> MessageReads { get; set; }
         public DbSet<UnreadMessageCount> UnreadMessageCounts { get; set; }
         public DbSet<PushSubscription> PushSubscriptions { get; set; }
+        public DbSet<VapidKeys> VapidKeys { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -38,6 +39,10 @@ namespace Comms.Data
                 .HasIndex(ps => new { ps.UserId, ps.Endpoint })
                 .IsUnique();
 
+            modelBuilder.Entity<VapidKeys>()
+                .HasIndex(vk => vk.PublicKey)
+                .IsUnique();
+
             // Configure indexes for performance
             modelBuilder.Entity<ChatParticipant>()
                 .HasIndex(cp => cp.UserId);
@@ -56,6 +61,9 @@ namespace Comms.Data
 
             modelBuilder.Entity<PushSubscription>()
                 .HasIndex(ps => ps.UserId);
+
+            modelBuilder.Entity<VapidKeys>()
+                .HasIndex(vk => vk.PublicKey);
 
             // Configure relationships
             modelBuilder.Entity<ChatParticipant>()

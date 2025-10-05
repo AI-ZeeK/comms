@@ -1,0 +1,22 @@
+# Use the official .NET 9 runtime image
+FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base
+WORKDIR /app
+EXPOSE 8080
+EXPOSE 8081
+
+# Use the SDK image to build the application
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+WORKDIR /src
+COPY ["comms.csproj", "."]
+RUN dotnet restore "comms.csproj"
+COPY . .
+WORKDIR "/src"
+RUN dotnet build "comms.csproj" -c Release -o /app/build
+
+FROM build AS publish
+RUN dotnet publish "comms.csproj" -c Release -o /app/publish /p:UseAppHost=false
+
+FROM base AS final
+WORKDIR /app
+COPY --from=publish /app/publish .
+ENTRYPOINT ["dotnet", "comms.dll"]

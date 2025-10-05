@@ -1,0 +1,22 @@
+# Development Dockerfile for C# Comms Service
+
+# Base runtime image
+FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base
+WORKDIR /app
+EXPOSE 8080
+
+# SDK image for building and hot reload
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+WORKDIR /app
+
+# Copy everything into the container
+COPY . ./
+
+# Restore dependencies
+RUN dotnet restore
+
+# Expose for hot reload
+EXPOSE 8080
+
+# Enable watch mode for development
+CMD ["dotnet", "watch", "run", "--urls", "http://0.0.0.0:8080"]

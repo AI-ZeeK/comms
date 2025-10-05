@@ -1,0 +1,2 @@
+obj\Debug\net9.0\Protos/Admin.cs \
+obj\Debug\net9.0\Protos/AdminGrpc.cs: Protos/admin.proto

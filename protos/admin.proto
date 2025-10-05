@@ -1,0 +1,241 @@
+syntax = "proto3";
+
+
+package admin;
+
+
+// 👤 Profile Service - handles user profiles and user management
+service AdminService {
+  // admin services
+  rpc AdminRegister(AdminRegisterRequest) returns (AuthInitialResponse);
+  rpc AdminLogin(LoginRequest) returns (AuthInitialResponse);
+  rpc AdminLogout(LogoutRequest) returns (SendOtpResponse);
+  rpc AdminSendOtp(SendOtpRequest) returns (SendOtpResponse);
+  rpc AdminVerifyOtp(VerifyOtpRequest) returns (VerifyOtpResponse);
+  rpc AdminRefreshToken(RefreshTokenRequest) returns (RefreshTokenResponse);
+  rpc FetchAllAdmin(EmptyRequest) returns (FetchAllAdminResponse);
+  rpc FetchAdminAccount(FetchAdminAccountRequest) returns (FetchAdminAccountResponse);
+  rpc ValidateAdminAccount(ValidateAdminAccountRequest) returns (FetchAdminAccountResponse);
+
+  rpc GetUser(GetUserRequest) returns (UserResponse);
+ 
+}
+
+message FetchAllAdminResponse {
+  repeated User users = 1;
+}
+  
+message FetchAdminAccountRequest {
+  string user_id = 1;
+}
+message ValidateAdminAccountRequest {
+  string token = 1;
+}
+
+message FetchAdminAccountResponse {
+  User user = 1;
+  bool success = 2;
+  string message = 3;
+}
+
+
+
+
+
+
+// 📝 REQUEST MESSAGES
+
+message EmptyRequest {}
+
+
+
+message Role {
+  string role_id = 1;
+  string role_name = 2;
+  bool is_active = 3;
+}
+
+
+message VerifyOtpResponse {
+  bool success = 1;
+  optional string error = 2;
+  optional string message = 3;
+  optional string access_token = 4;
+  optional User user = 5;
+}
+
+message LoginRequest {
+  string email = 1;
+  string password = 2;
+}
+
+message SendOtpRequest {
+  string token = 1;
+  SendOtpType type = 2;
+}
+
+message VerifyOtpRequest {
+  string token = 1;
+  string otp = 2;
+  SendOtpType type = 3;
+}
+
+message SendOtpResponse {
+  bool success = 1;
+  optional string error = 2;
+  optional string message = 3;
+}
+
+message RefreshTokenResponse {
+  bool success = 1;
+  User user = 2;
+  string access_token = 3;
+}
+
+
+
+
+message AuthInitialResponse {
+  bool success = 1;
+  optional string error = 2;
+  optional string message = 3;
+  optional string auth_token = 4;
+}
+  
+message AdminRegisterRequest {
+  string email = 1;
+  string password = 2;
+  string platform_ref = 3;
+
+}
+
+message RegisterRequest {
+  string email = 1;
+  string password = 2;
+  string phone_number = 3;
+  string company_ref = 4;
+  string role_name = 5;
+}
+
+
+enum ROLES_ENUM {
+  CLIENT = 0;
+  BUSINESS_USER = 1;
+  STAFF = 2;
+}
+
+message LogoutRequest {
+  string user_id = 1;
+}
+
+message RefreshTokenRequest {
+  string user_id = 1;
+}
+
+
+
+message GetUserRequest {
+  string user_id = 1;
+}
+
+message GetUserByEmailRequest {
+  string email = 1;
+}
+
+
+message UserResponse {
+  bool success = 1;
+  optional string error = 2;
+  optional User user = 3;
+}
+
+message GetUserByEmailResponse {
+  bool success = 1;
+  optional string error = 2;
+  optional string message = 3;
+  optional User user = 4;
+}
+
+
+
+message GetUserContactsResponse {
+  bool success = 1;
+  optional string error = 2;
+  repeated Contact contacts = 3;
+  int32 total_count = 4;
+}
+
+
+
+// 🏗️ DATA MODELS
+
+message User {
+  string user_id = 1;
+  string email = 2;
+  optional string username = 3;
+  optional string first_name = 4;
+  optional string last_name = 5;
+  optional string phone_number = 6;
+  optional string avatar_url = 7;
+  optional string last_seen = 8;
+  string created_at = 9;
+  string updated_at = 10;
+  bool email_verified = 11;
+  optional Address address = 12;
+}
+
+message Contact {
+  string user_id = 1;
+  string email = 2;
+  optional string username = 3;
+  optional string first_name = 4;
+  optional string last_name = 5;
+  optional string avatar_url = 6;
+  optional string last_seen = 7;
+  bool email_verified = 8;
+}
+
+message Organization {
+  string organization_id = 1;
+  string name = 2;
+  string phone_number = 3;
+  string email = 4;
+  string registration_number = 5;
+  string registration_date = 6;
+  string creator_id = 7;
+  string created_at = 8;
+  string updated_at = 9;
+  optional string deleted_at = 10;
+}
+
+message Address {
+  optional string address_id = 1;
+  optional string street = 2;
+  optional string building = 3;
+  optional string apartment = 4;
+  optional string district = 5;
+  optional string city = 6;
+  optional string state = 7;
+  optional string postal_code = 8;
+  optional string country = 9;
+  optional string landmark = 10;
+  optional string direction_url = 11;
+  optional double latitude = 12;
+  optional double longitude = 13;
+}
+
+message UserRole {
+  string user_role_id = 1;
+  string role_name = 2;
+  bool is_active = 3;
+}
+
+
+
+enum SendOtpType {
+  REGISTRATION = 0;
+  SIGNIN = 1;
+  ADMIN_REGISTRATION = 2;
+  ADMIN_SIGNIN = 3;
+  FORGOT_PASSWORD = 4;
+}

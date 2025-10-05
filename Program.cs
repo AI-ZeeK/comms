@@ -2,20 +2,101 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using Comms.Data;
 using Comms.Hubs;
 using Comms.Services;
+using Comms.Helpers;
+using Comms.Guards;
+using StackExchange.Redis;
+using DotNetEnv;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
+Env.Load(); 
 // Load environment variables
-var connectionString = Environment.ExpandEnvironmentVariables(
-    builder.Configuration.GetConnectionString("DefaultConnection") ?? 
-    throw new InvalidOperationException("Connection string 'DefaultConnection' not found."));
+var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL") ??"" ?? 
+    throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 
-// Add services to the container
-builder.Services.AddControllers();
+var redis_url = Environment.GetEnvironmentVariable("REDIS_URL") ??"";
+// // Add services to the container
+// builder.Services.AddControllers()
+builder.Services.AddControllers(options =>
+{
+    options.Filters.Add<RejectExtraPropertiesFilter>();
+})
+.AddJsonOptions(options =>
+{
+    // Configure JSON serialization for snake_case compatibility with NestJS
+    options.JsonSerializerOptions.PropertyNamingPolicy = new SnakeCaseNamingPolicy();
+    options.JsonSerializerOptions.WriteIndented = true;
+    options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter(new SnakeCaseNamingPolicy()));
+    options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+});
+
+// builder.Services.AddControllers(options =>
+// {
+//     options.Conventions.Add(new RoutePrefixConvention("api/v1"));
+// });
+
+
 builder.Services.AddOpenApi();
+builder.Services.AddEndpointsApiExplorer();
+// builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new() { Title = "Comms API", Version = "v1" });
+
+    // Add JWT Bearer support
+    c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = Microsoft.OpenApi.Models.SecuritySchemeType.ApiKey,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+        Description = "Enter 'Bearer {your token}'"
+    });
+
+    c.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+    {
+        {
+            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+            {
+                Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                {
+                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            new string[] {}
+        }
+    });
+});
+
+    // Console.WriteLine(JsonSerializer.Serialize(Environment.GetEnvironmentVariable("REDIS_URL")));
+// builder.Services.AddSignalR();
+builder.Services.AddSignalR()
+    .AddStackExchangeRedis(redis_url,
+        options =>
+        {
+            options.Configuration.ChannelPrefix =  RedisChannel.Literal("CommsApp"); // optional
+        });
+builder.Services.AddSingleton<IConnectionMultiplexer>(
+    ConnectionMultiplexer.Connect(redis_url ));
+
+builder.Services.AddSingleton<UserService>();
+builder.Services.AddScoped<PushService>();
+
+// Add gRPC services
+builder.Services.AddScoped<IAdminGrpcService, AdminGrpcService>();
+builder.Services.AddScoped<IProfileGrpcService, ProfileGrpcService>();
+
+// Add guards
+builder.Services.AddScoped<UserGuard>();
+builder.Services.AddScoped<AdminGuard>();
 
 // Add gRPC services
 builder.Services.AddGrpc();
@@ -45,9 +126,14 @@ builder.Services.AddCors(options =>
     });
 });
 
+
 // Add JWT Authentication
 var jwtSettings = builder.Configuration.GetSection("JWT");
-var secretKey = Environment.ExpandEnvironmentVariables(jwtSettings["SecretKey"] ?? throw new InvalidOperationException("JWT SecretKey not found"));
+var userSecretKey = Environment.GetEnvironmentVariable("JWT_ACCESS_SECRET") 
+    ?? throw new InvalidOperationException("JWT_ACCESS_SECRET not found");
+
+var adminSecretKey =  Environment.GetEnvironmentVariable("JWT_ADMIN_ACCESS_SECRET") 
+    ?? throw new InvalidOperationException("JWT_ADMIN_ACCESS_SECRET not found");
 var issuer = Environment.ExpandEnvironmentVariables(jwtSettings["Issuer"] ?? throw new InvalidOperationException("JWT Issuer not found"));
 var audience = Environment.ExpandEnvironmentVariables(jwtSettings["Audience"] ?? throw new InvalidOperationException("JWT Audience not found"));
 
@@ -62,8 +148,12 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateIssuerSigningKey = true,
             ValidIssuer = issuer,
             ValidAudience = audience,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey))
-        };
+ // 🔑 Accept both admin & user secrets
+            IssuerSigningKeys = new[]
+            {
+                new SymmetricSecurityKey(Encoding.UTF8.GetBytes(adminSecretKey)),
+                new SymmetricSecurityKey(Encoding.UTF8.GetBytes(userSecretKey))
+            }        };
 
         // Configure JWT for SignalR
         options.Events = new JwtBearerEvents
@@ -106,11 +196,25 @@ builder.Services.AddHttpClient("FilesService", client =>
 });
 
 var app = builder.Build();
+// var _logger = app.Logger;
+// _logger.LogInformation("6688======", Environment.GetEnvironmentVariable("REDIS_URL"),  "&!*@#(!@&#*&!@(*!",userSecretKey);
+// _logger.LogInformation(System.Text.Json.JsonSerializer.Serialize(jwtSettings["REDIS_URL"]));
+// _logger.LogInformation(System.Text.Json.JsonSerializer.Serialize(Environment.GetEnvironmentVariable("JWT_ACCESS_SECRET") ));
+// _logger.LogInformation(System.Text.Json.JsonSerializer.Serialize(jwtSettings["JWT_ACCESS_SECRET"]));
+// _logger.LogInformation(System.Text.Json.JsonSerializer.Serialize(userSecretKey ));
+// _logger.LogInformation(System.Text.Json.JsonSerializer.Serialize(jwtSettings));
+// System.
 
 // Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    app.UseSwagger();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Comms API v1");
+        c.RoutePrefix = "docs"; // You can access it at https://localhost:5001/docs
+    });
 }
 
 app.UseHttpsRedirection();
@@ -128,8 +232,14 @@ app.MapControllers();
 // Map SignalR hub
 app.MapHub<ChatHub>("/chathub");
 
+app.MapGet("/user", (UserService userService) =>
+{
+    var user = userService.GetDummyUser();
+    return Results.Ok(user);
+});
 // Health check endpoint
-app.MapGet("/health", () => "Communications Service is running");
+// app.MapGet("/", () => "Communications Service is running");
+app.MapGet("/", () => new { message = "Communications Service is running on Watch", status = "ok" });
 
 // Auto-migrate database on startup (optional - remove in production)
 using (var scope = app.Services.CreateScope())

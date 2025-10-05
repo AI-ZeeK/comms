@@ -14,14 +14,17 @@ namespace Comms.Hubs
         private readonly ILogger<ChatHub> _logger;
         private readonly IRabbitMQService _rabbitMQService;
 
-        public ChatHub(CommunicationsDbContext context, ILogger<ChatHub> logger, IRabbitMQService rabbitMQService)
+        private readonly IHubContext<ChatListHub> _chatListHub;
+
+        public ChatHub(CommunicationsDbContext context, ILogger<ChatHub> logger, IRabbitMQService rabbitMQService, IHubContext<ChatListHub> chatListHub)
         {
             _context = context;
             _logger = logger;
             _rabbitMQService = rabbitMQService;
+            _chatListHub = chatListHub;
         }
 
-        // Join a specific chat room
+            // Join a specific chat room
         public async Task JoinChat(string chatId)
         {
             var userId = GetUserId();
@@ -72,6 +75,23 @@ namespace Comms.Hubs
 
                 _context.Messages.Add(message);
                 await _context.SaveChangesAsync();
+
+                // inside SendMessage after saving the message
+var participants = await _context.ChatParticipants
+    .Where(cp => cp.ChatId == message.ChatId && cp.IsActive)
+    .Select(cp => cp.UserId)
+    .ToListAsync();
+
+foreach (var participantId in participants)
+{
+    // await _chatListHub.Clients.Group($"User_{participantId}").SendAsync("ChatListUpdated", new
+    // {
+    //     chatId = message.ChatId,
+    //     preview = message.Content,
+    //     unreadCount = await _context.Messages
+    //         .CountAsync(m => m.ChatId == message.ChatId && !m.MessageReads.Any(r => r.UserId == participantId))
+    // });
+}
 
                 // Publish message event to other microservices
                 await _rabbitMQService.PublishChatEventAsync("message.sent", new

@@ -274,19 +274,24 @@ namespace Comms.Services
         private async Task HandleUserDeleted(dynamic eventData)
         {
             // Handle user deletion - cleanup user data
-            using var scope = _serviceProvider.CreateScope();
-            var context = scope.ServiceProvider.GetRequiredService<CommunicationsDbContext>();
+            string userIdStr = (string?)(eventData?.data?.userId?.ToString()) ?? "null";
+        if (!Guid.TryParse(userIdStr, out Guid userId))
+             {
+            _logger.LogWarning("Invalid userId in user.deleted event: {UserId}", userIdStr);
+            return;
+        }
+
+        using var scope = _serviceProvider.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<CommunicationsDbContext>();
+
+        // ✅ Now EF Core sees a real Guid, not dynamic
+        var participations = await context.ChatParticipants
+            .Where(cp => cp.UserId == userId)
+            .ToListAsync();
+
+        context.ChatParticipants.RemoveRange(participations);
             
-            var userId = Guid.Parse(eventData?.data?.userId?.ToString() ?? "");
-            
-            // Remove user from all chats
-            var participations = await context.ChatParticipants
-                .Where(cp => cp.UserId == userId)
-                .ToListAsync();
-            
-            context.ChatParticipants.RemoveRange(participations);
-            
-            // Remove user's push subscriptions
+            // // Remove user's push subscriptions
             var subscriptions = await context.PushSubscriptions
                 .Where(ps => ps.UserId == userId)
                 .ToListAsync();
@@ -302,23 +307,23 @@ namespace Comms.Services
         {
             // Handle file upload completion - update message with file URL
             var fileUrl = eventData?.data?.fileUrl?.ToString();
-            var messageId = eventData?.data?.messageId?.ToString();
+            string messageId = (string?)(eventData?.data?.messageId?.ToString()) ?? "null";
             
             if (!string.IsNullOrEmpty(fileUrl) && !string.IsNullOrEmpty(messageId))
             {
                 using var scope = _serviceProvider.CreateScope();
                 var context = scope.ServiceProvider.GetRequiredService<CommunicationsDbContext>();
-                
+
                 var message = await context.Messages
                     .FirstOrDefaultAsync(m => m.MessageId == Guid.Parse(messageId));
-                
+
                 if (message != null)
                 {
                     message.FileUrl = fileUrl;
                     message.FileSize = eventData?.data?.fileSize;
                     message.FileType = eventData?.data?.fileType;
                     await context.SaveChangesAsync();
-                    
+
                     _logger.LogInformation($"Updated message {messageId} with file URL: {fileUrl}");
                 }
             }
@@ -327,26 +332,27 @@ namespace Comms.Services
         private async Task HandleFileDeleted(dynamic eventData)
         {
             // Handle file deletion - remove file references from messages
-            var fileUrl = eventData?.data?.fileUrl?.ToString();
+            string fileUrl = (string?)(eventData?.data?.fileUrl?.ToString()) ?? "null";
+
             
             if (!string.IsNullOrEmpty(fileUrl))
             {
                 using var scope = _serviceProvider.CreateScope();
                 var context = scope.ServiceProvider.GetRequiredService<CommunicationsDbContext>();
-                
+
                 var messages = await context.Messages
                     .Where(m => m.FileUrl == fileUrl)
                     .ToListAsync();
-                
+
                 foreach (var message in messages)
                 {
                     message.FileUrl = null;
                     message.FileSize = null;
                     message.FileType = null;
                 }
-                
+
                 await context.SaveChangesAsync();
-                
+
                 _logger.LogInformation($"Removed file references for URL: {fileUrl}");
             }
         }
