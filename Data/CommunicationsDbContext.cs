@@ -1,5 +1,5 @@
-using Microsoft.EntityFrameworkCore;
 using Comms.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace Comms.Data
 {
