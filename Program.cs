@@ -100,6 +100,7 @@ builder.Services.AddSingleton<IConnectionMultiplexer>(ConnectionMultiplexer.Conn
 
 builder.Services.AddSingleton<UserService>();
 builder.Services.AddScoped<PushService>();
+builder.Services.AddScoped<Admin_Service>();
 
 // Add gRPC services
 builder.Services.AddScoped<IAdminGrpcService, AdminGrpcService>();
@@ -119,9 +120,9 @@ builder.Services.AddDbContext<CommunicationsDbContext>(options =>
 
 // SignalR removed - using NestJS WebSocket Gateway instead
 
-// Add RabbitMQ services
-builder.Services.AddSingleton<IRabbitMQService, RabbitMQService>();
-builder.Services.AddHostedService<RabbitMQBackgroundService>();
+// // Add RabbitMQ services
+// builder.Services.AddSingleton<IRabbitMQService, RabbitMQService>();
+// builder.Services.AddHostedService<RabbitMQBackgroundService>();
 
 // Add CORS
 var allowedOrigins =

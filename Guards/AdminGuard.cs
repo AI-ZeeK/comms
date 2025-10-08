@@ -30,20 +30,25 @@ namespace Comms.Guards
                     context.Result = new UnauthorizedObjectResult(new { message = "Missing or invalid authorization header" });
                     return;
                 }
+                _logger.LogInformation("Auth Header: {AuthHeader}", authHeader);
 
                 var token = authHeader.Substring("Bearer ".Length).Trim();
+                _logger.LogInformation("Token: {Token}", token);
                 var userResponse = await _adminGrpcService.ValidateAdminAccountAsync(token);
+                _logger.LogWarning("User Response: {UserResponse}", userResponse);
                 if (userResponse == null || !userResponse.Success)
                 {
+                    _logger.LogWarning("Admin validation failed: {Message}", userResponse?.Message);
                     // context.Result = new UnauthorizedResult();
-                    context.Result = new JsonResult(new { message = userResponse?.Message ??""})
-                        {
-                            StatusCode = StatusCodes.Status401Unauthorized
-                        };
+                    context.Result = new JsonResult(new { message = userResponse?.Message ?? "" })
+                    {
+                        StatusCode = StatusCodes.Status401Unauthorized
+                    };
                     return;
 
-                    }
-                // Add user info to context for use in controllers
+                }
+                _logger.LogInformation("Admin validated: {UserId}", userResponse.User?.UserId);
+               // Add user info to context for use in controllers
                 context.HttpContext.Items["AdminInfo"] = userResponse;
                 context.HttpContext.Items["user_id"] = userResponse.User?.UserId;
 

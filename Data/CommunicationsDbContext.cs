@@ -16,6 +16,7 @@ namespace Comms.Data
         public DbSet<UnreadMessageCount> UnreadMessageCounts { get; set; }
         public DbSet<PushSubscription> PushSubscriptions { get; set; }
         public DbSet<VapidKeys> VapidKeys { get; set; }
+        public DbSet<MetaData> MetaData { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -41,6 +42,10 @@ namespace Comms.Data
 
             modelBuilder.Entity<VapidKeys>()
                 .HasIndex(vk => vk.PublicKey)
+                .IsUnique();
+                
+            modelBuilder.Entity<MetaData>()
+                .HasIndex(vk => vk.Id)
                 .IsUnique();
 
             // Configure indexes for performance

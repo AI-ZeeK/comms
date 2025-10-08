@@ -7,6 +7,7 @@ namespace Comms.Models.DTOs
         [Required]
         public string PublicKey { get; set; } = string.Empty; // "WEB", "ANDROID", "IOS"
     }
+
     public class PushSubscriptionDto
     {
         [Required]
@@ -26,15 +27,5 @@ namespace Comms.Models.DTOs
 
         [Required]
         public SubscriptionKeysDto Keys { get; set; } = new();
-
-    }
-
-    public class SubscriptionKeysDto
-    {
-        [Required]
-        public string P256dh { get; set; } = string.Empty;
-
-        [Required]
-        public string Auth { get; set; } = string.Empty;
     }
 }

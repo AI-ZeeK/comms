@@ -197,6 +197,63 @@ namespace comms.Migrations
                     b.ToTable("message_reads", "communications");
                 });
 
+            modelBuilder.Entity("Comms.Models.MetaData", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("meta_id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<bool>("EnableFailedPayments")
+                        .HasColumnType("boolean")
+                        .HasColumnName("enable_failed_payments");
+
+                    b.Property<bool>("EnableNewUser")
+                        .HasColumnType("boolean")
+                        .HasColumnName("enable_new_user");
+
+                    b.Property<bool>("EnableNewsLetter")
+                        .HasColumnType("boolean")
+                        .HasColumnName("enable_newsletter");
+
+                    b.Property<bool>("EnablePasswordReset")
+                        .HasColumnType("boolean")
+                        .HasColumnName("enable_password_reset");
+
+                    b.Property<bool>("EnablePushNotifications")
+                        .HasColumnType("boolean")
+                        .HasColumnName("enable_push_notifications");
+
+                    b.Property<bool>("EnableSecurityAlerts")
+                        .HasColumnType("boolean")
+                        .HasColumnName("enable_security_alerts");
+
+                    b.Property<bool>("EnableSystemError")
+                        .HasColumnType("boolean")
+                        .HasColumnName("enable_system_error");
+
+                    b.Property<bool>("EnableWelcomeEmail")
+                        .HasColumnType("boolean")
+                        .HasColumnName("enable_welcome_email");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Id")
+                        .IsUnique();
+
+                    b.ToTable("meta_data", "notifications");
+                });
+
             modelBuilder.Entity("Comms.Models.PushSubscription", b =>
                 {
                     b.Property<Guid>("SubscriptionId")

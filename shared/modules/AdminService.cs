@@ -31,8 +31,11 @@ namespace Comms.Services
             // Ensure the URL has a valid scheme for gRPC
             if (!adminServiceUrl.StartsWith("http://") && !adminServiceUrl.StartsWith("https://"))
             {
-                adminServiceUrl = $"http://{adminServiceUrl}";
+                // adminServiceUrl = $"http://{adminServiceUrl}";
+                adminServiceUrl = "http://localhost:50057";
             }
+            _logger.LogInformation("Connecting to Admin Service at: {Url}", adminServiceUrl);
+
 
             _logger.LogInformation("Connecting to Admin Service at: {Url}", adminServiceUrl);
 
@@ -90,7 +93,7 @@ namespace Comms.Services
             {
                 var request = new ValidateAdminAccountRequest { Token = token };
                 var user =await _client.ValidateAdminAccountAsync(request);
-
+_logger.LogInformation("Validate admin account: {user})", user);
 
                 return new FetchAdminAccountResponse
                 {
