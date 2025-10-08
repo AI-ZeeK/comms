@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Comms.Models
 {
-    [Table("meta_data", Schema = "notifications")]
+    [Table("meta_data", Schema = "admin")]
     public class MetaData
     {
         [Key]

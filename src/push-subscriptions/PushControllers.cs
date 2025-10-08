@@ -1,6 +1,6 @@
-using System.Threading.Tasks;
 using Comms.Constants;
 using Comms.Guards;
+using Comms.Models;
 using Comms.Models.DTOs;
 using Comms.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -20,9 +20,40 @@ namespace Comms.Controllers
             _pushService = pushService ?? throw new ArgumentNullException(nameof(pushService));
         }
 
+        [HttpPost("/admin/subscribe")]
+        [ServiceFilter(typeof(AdminGuard))]
+        public async Task<IActionResult> AdminSubscribe(
+            [FromBody] PushSubscriptionDto pushSubscription
+        )
+        {
+            // Retrieve admin user ID added by the AdminGuard
+            var user_id = HttpContext.Items["user_id"]?.ToString();
+
+            if (string.IsNullOrEmpty(user_id))
+            {
+                return Unauthorized(new { message = "Admin ID missing from context" });
+            }
+
+            // Inject the ID and set user type to ADMIN
+            pushSubscription.UserId = Guid.Parse(user_id);
+            pushSubscription.UserType = UserType.ADMIN;
+            await _pushService.SavePushSubscription(pushSubscription);
+            return Ok();
+        }
+
         [HttpPost("subscribe")]
+        [ServiceFilter(typeof(UserGuard))]
         public async Task<IActionResult> Subscribe([FromBody] PushSubscriptionDto pushSubscription)
         {
+            var user_id = HttpContext.Items["user_id"]?.ToString();
+
+            if (string.IsNullOrEmpty(user_id))
+            {
+                return Unauthorized(new { message = "User ID missing from context" });
+            }
+
+            // Inject the ID and set user type to ADMIN
+            pushSubscription.UserId = Guid.Parse(user_id);
             await _pushService.SavePushSubscription(pushSubscription);
             return Ok();
         }

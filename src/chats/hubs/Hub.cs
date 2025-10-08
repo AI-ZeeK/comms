@@ -1,5 +1,5 @@
-using Microsoft.AspNetCore.SignalR;
 using System.Collections.Concurrent;
+using Microsoft.AspNetCore.SignalR;
 
 namespace Comms.Hubs
 {
@@ -67,24 +67,34 @@ namespace Comms.Hubs
             var sender = Context.ConnectionId;
             Console.WriteLine($"Message from {sender} to {roomName}: {message}");
 
-            await Clients.Group(roomName).SendAsync("ReceiveMessage", new
-            {
-                Sender = sender,
-                Message = message,
-                Room = roomName,
-                Timestamp = DateTime.UtcNow
-            });
+            await Clients
+                .Group(roomName)
+                .SendAsync(
+                    "ReceiveMessage",
+                    new
+                    {
+                        Sender = sender,
+                        Message = message,
+                        Room = roomName,
+                        Timestamp = DateTime.UtcNow,
+                    }
+                );
         }
 
         // Optional: Send a private message to a connection
         public async Task SendPrivateMessage(string connectionId, string message)
         {
-            await Clients.Client(connectionId).SendAsync("ReceivePrivateMessage", new
-            {
-                Sender = Context.ConnectionId,
-                Message = message,
-                Timestamp = DateTime.UtcNow
-            });
+            await Clients
+                .Client(connectionId)
+                .SendAsync(
+                    "ReceivePrivateMessage",
+                    new
+                    {
+                        Sender = Context.ConnectionId,
+                        Message = message,
+                        Timestamp = DateTime.UtcNow,
+                    }
+                );
         }
     }
 }

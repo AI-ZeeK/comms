@@ -20,7 +20,35 @@ service Communications {
   // Push notification operations
   rpc AddPushSubscription (AddPushSubscriptionRequest) returns (PushSubscriptionResponse);
   rpc RemovePushSubscription (RemovePushSubscriptionRequest) returns (PushSubscriptionResponse);
+
+  rpc SendAdminNotification (PushSubscriptionRequest) returns (PushSubscriptionResponse);
+  rpc SendUserNotification (PushSubscriptionRequest) returns (PushSubscriptionResponse);
 }
+
+message NotificationData {
+  string entity_id = 1;
+  string sender_id = 2;
+  string sender_name = 3;
+  NotificationType entity_type = 4; // optional, if you may add more later
+}
+
+
+enum NotificationType {
+  NEW_MESSAGE = 0;
+  FRIEND_REQUEST = 1;
+  SYSTEM_ALERT = 2;
+  // Add more types as needed
+}
+
+// Push notification service definition
+message PushSubscriptionRequest {
+  string title = 1;
+  string body = 2;
+  NotificationData data = 3;
+  string recipient_user_id = 4;
+}
+
+
 
 // Message types
 message CreateChatRequest {

@@ -5,7 +5,10 @@ namespace Comms.Services
         private readonly IRabbitMQService _rabbitMQService;
         private readonly ILogger<RabbitMQBackgroundService> _logger;
 
-        public RabbitMQBackgroundService(IRabbitMQService rabbitMQService, ILogger<RabbitMQBackgroundService> logger)
+        public RabbitMQBackgroundService(
+            IRabbitMQService rabbitMQService,
+            ILogger<RabbitMQBackgroundService> logger
+        )
         {
             _rabbitMQService = rabbitMQService;
             _logger = logger;
@@ -28,10 +31,10 @@ namespace Comms.Services
         public override async Task StopAsync(CancellationToken stoppingToken)
         {
             _logger.LogInformation("RabbitMQ Background Service stopping...");
-            
+
             _rabbitMQService.StopListening();
-            
+
             await base.StopAsync(stoppingToken);
         }
     }
-} 
+}

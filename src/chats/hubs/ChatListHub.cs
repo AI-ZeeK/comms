@@ -1,7 +1,7 @@
-using Microsoft.AspNetCore.SignalR;
-using Microsoft.AspNetCore.Authorization;
-using Comms.Services;
 using Comms.Data;
+using Comms.Services;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 
 namespace Comms.Hubs
@@ -24,7 +24,6 @@ namespace Comms.Hubs
             var userId = GetUserId();
             if (userId != null)
             {
-                // Join a group unique to this user
                 await Groups.AddToGroupAsync(Context.ConnectionId, $"User_{userId}");
                 _logger.LogInformation($"User {userId} connected to ChatListHub");
             }
@@ -45,16 +44,22 @@ namespace Comms.Hubs
         public async Task NotifyNewMessage(Guid chatId, string preview, int unreadCount)
         {
             var userId = GetUserId();
-            if (userId == null) return;
+            if (userId == null)
+                return;
 
             // Broadcast only to this user's group
-            await Clients.Group($"User_{userId}").SendAsync("ChatListUpdated", new
-            {
-                chatId,
-                preview,
-                unreadCount,
-                timestamp = DateTime.UtcNow
-            });
+            await Clients
+                .Group($"User_{userId}")
+                .SendAsync(
+                    "ChatListUpdated",
+                    new
+                    {
+                        chatId,
+                        preview,
+                        unreadCount,
+                        timestamp = DateTime.UtcNow,
+                    }
+                );
         }
 
         private Guid? GetUserId()

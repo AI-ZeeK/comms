@@ -1,9 +1,9 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Comms.Models    
+namespace Comms.Models
 {
-    [Table("push_subscriptions", Schema = "communications")]
+    [Table("push_subscriptions", Schema = "notifications")]
     public class PushSubscription
     {
         [Key]
@@ -12,6 +12,9 @@ namespace Comms.Models
 
         [Column("user_id")]
         public Guid UserId { get; set; }
+
+        [Column("user_type")]
+        public UserType UserType { get; set; } = UserType.USER;
 
         [Column("endpoint")]
         public string Endpoint { get; set; } = string.Empty;
@@ -31,4 +34,4 @@ namespace Comms.Models
         [Column("updated_at")]
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
     }
-} 
+}

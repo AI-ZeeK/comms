@@ -1,8 +1,8 @@
-using Microsoft.AspNetCore.SignalR;
-using Microsoft.AspNetCore.Authorization;
 using Comms.Data;
 using Comms.Models;
 using Comms.Services;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 
 namespace Comms.Hubs
@@ -16,7 +16,12 @@ namespace Comms.Hubs
 
         private readonly IHubContext<ChatListHub> _chatListHub;
 
-        public ChatHub(CommunicationsDbContext context, ILogger<ChatHub> logger, IRabbitMQService rabbitMQService, IHubContext<ChatListHub> chatListHub)
+        public ChatHub(
+            CommunicationsDbContext context,
+            ILogger<ChatHub> logger,
+            IRabbitMQService rabbitMQService,
+            IHubContext<ChatListHub> chatListHub
+        )
         {
             _context = context;
             _logger = logger;
@@ -24,15 +29,17 @@ namespace Comms.Hubs
             _chatListHub = chatListHub;
         }
 
-            // Join a specific chat room
+        // Join a specific chat room
         public async Task JoinChat(string chatId)
         {
             var userId = GetUserId();
-            if (userId == null) return;
+            if (userId == null)
+                return;
 
             // Verify user is participant in this chat
-            var isParticipant = await _context.ChatParticipants
-                .AnyAsync(cp => cp.ChatId == Guid.Parse(chatId) && cp.UserId == userId && cp.IsActive);
+            var isParticipant = await _context.ChatParticipants.AnyAsync(cp =>
+                cp.ChatId == Guid.Parse(chatId) && cp.UserId == userId && cp.IsActive
+            );
 
             if (isParticipant)
             {
@@ -52,15 +59,18 @@ namespace Comms.Hubs
         public async Task SendMessage(string chatId, string content, string messageType = "TEXT")
         {
             var userId = GetUserId();
-            if (userId == null) return;
+            if (userId == null)
+                return;
 
             try
             {
                 // Verify user is participant in this chat
-                var isParticipant = await _context.ChatParticipants
-                    .AnyAsync(cp => cp.ChatId == Guid.Parse(chatId) && cp.UserId == userId && cp.IsActive);
+                var isParticipant = await _context.ChatParticipants.AnyAsync(cp =>
+                    cp.ChatId == Guid.Parse(chatId) && cp.UserId == userId && cp.IsActive
+                );
 
-                if (!isParticipant) return;
+                if (!isParticipant)
+                    return;
 
                 // Create and save message
                 var message = new Message
@@ -70,51 +80,59 @@ namespace Comms.Hubs
                     Content = content,
                     Type = Enum.Parse<MessageType>(messageType),
                     Status = MessageStatus.SENT,
-                    CreatedAt = DateTime.UtcNow
+                    CreatedAt = DateTime.UtcNow,
                 };
 
                 _context.Messages.Add(message);
                 await _context.SaveChangesAsync();
 
                 // inside SendMessage after saving the message
-var participants = await _context.ChatParticipants
-    .Where(cp => cp.ChatId == message.ChatId && cp.IsActive)
-    .Select(cp => cp.UserId)
-    .ToListAsync();
+                var participants = await _context
+                    .ChatParticipants.Where(cp => cp.ChatId == message.ChatId && cp.IsActive)
+                    .Select(cp => cp.UserId)
+                    .ToListAsync();
 
-foreach (var participantId in participants)
-{
-    // await _chatListHub.Clients.Group($"User_{participantId}").SendAsync("ChatListUpdated", new
-    // {
-    //     chatId = message.ChatId,
-    //     preview = message.Content,
-    //     unreadCount = await _context.Messages
-    //         .CountAsync(m => m.ChatId == message.ChatId && !m.MessageReads.Any(r => r.UserId == participantId))
-    // });
-}
+                foreach (var participantId in participants)
+                {
+                    // await _chatListHub.Clients.Group($"User_{participantId}").SendAsync("ChatListUpdated", new
+                    // {
+                    //     chatId = message.ChatId,
+                    //     preview = message.Content,
+                    //     unreadCount = await _context.Messages
+                    //         .CountAsync(m => m.ChatId == message.ChatId && !m.MessageReads.Any(r => r.UserId == participantId))
+                    // });
+                }
 
                 // Publish message event to other microservices
-                await _rabbitMQService.PublishChatEventAsync("message.sent", new
-                {
-                    messageId = message.MessageId,
-                    chatId = message.ChatId,
-                    senderId = message.SenderId,
-                    content = message.Content,
-                    type = message.Type.ToString(),
-                    createdAt = message.CreatedAt
-                });
+                await _rabbitMQService.PublishChatEventAsync(
+                    "message.sent",
+                    new
+                    {
+                        messageId = message.MessageId,
+                        chatId = message.ChatId,
+                        senderId = message.SenderId,
+                        content = message.Content,
+                        type = message.Type.ToString(),
+                        createdAt = message.CreatedAt,
+                    }
+                );
 
                 // Broadcast message to all participants in the chat
-                await Clients.Group($"Chat_{chatId}").SendAsync("ReceiveMessage", new
-                {
-                    messageId = message.MessageId,
-                    chatId = message.ChatId,
-                    senderId = message.SenderId,
-                    content = message.Content,
-                    type = message.Type.ToString(),
-                    status = message.Status.ToString(),
-                    createdAt = message.CreatedAt
-                });
+                await Clients
+                    .Group($"Chat_{chatId}")
+                    .SendAsync(
+                        "ReceiveMessage",
+                        new
+                        {
+                            messageId = message.MessageId,
+                            chatId = message.ChatId,
+                            senderId = message.SenderId,
+                            content = message.Content,
+                            type = message.Type.ToString(),
+                            status = message.Status.ToString(),
+                            createdAt = message.CreatedAt,
+                        }
+                    );
 
                 _logger.LogInformation($"Message sent by user {userId} to chat {chatId}");
             }
@@ -128,7 +146,8 @@ foreach (var participantId in participants)
         public async Task MarkMessageAsRead(string messageId)
         {
             var userId = GetUserId();
-            if (userId == null) return;
+            if (userId == null)
+                return;
 
             try
             {
@@ -136,25 +155,31 @@ foreach (var participantId in participants)
                 {
                     MessageId = Guid.Parse(messageId),
                     UserId = userId.Value,
-                    ReadAt = DateTime.UtcNow
+                    ReadAt = DateTime.UtcNow,
                 };
 
                 _context.MessageReads.Add(messageRead);
                 await _context.SaveChangesAsync();
 
                 // Get the chat ID for this message
-                var message = await _context.Messages
-                    .FirstOrDefaultAsync(m => m.MessageId == Guid.Parse(messageId));
+                var message = await _context.Messages.FirstOrDefaultAsync(m =>
+                    m.MessageId == Guid.Parse(messageId)
+                );
 
                 if (message != null)
                 {
                     // Notify other participants that message was read
-                    await Clients.Group($"Chat_{message.ChatId}").SendAsync("MessageRead", new
-                    {
-                        messageId = messageId,
-                        userId = userId,
-                        readAt = DateTime.UtcNow
-                    });
+                    await Clients
+                        .Group($"Chat_{message.ChatId}")
+                        .SendAsync(
+                            "MessageRead",
+                            new
+                            {
+                                messageId = messageId,
+                                userId = userId,
+                                readAt = DateTime.UtcNow,
+                            }
+                        );
                 }
             }
             catch (Exception ex)
@@ -167,13 +192,12 @@ foreach (var participantId in participants)
         public async Task UserTyping(string chatId, bool isTyping)
         {
             var userId = GetUserId();
-            if (userId == null) return;
+            if (userId == null)
+                return;
 
-            await Clients.Group($"Chat_{chatId}").SendAsync("UserTyping", new
-            {
-                userId = userId,
-                isTyping = isTyping
-            });
+            await Clients
+                .Group($"Chat_{chatId}")
+                .SendAsync("UserTyping", new { userId = userId, isTyping = isTyping });
         }
 
         // Connection management
@@ -209,4 +233,4 @@ foreach (var participantId in participants)
             return null;
         }
     }
-} 
+}

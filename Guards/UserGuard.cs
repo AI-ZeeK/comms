@@ -1,7 +1,7 @@
+using Comms.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
-using Comms.Services;
 
 namespace Comms.Guards
 {
@@ -21,30 +21,42 @@ namespace Comms.Guards
             try
             {
                 // Get JWT token from Authorization header
-                var authHeader = context.HttpContext.Request.Headers["Authorization"].FirstOrDefault();
+                var authHeader = context
+                    .HttpContext.Request.Headers["Authorization"]
+                    .FirstOrDefault();
                 if (authHeader == null || !authHeader.StartsWith("Bearer "))
                 {
-                    context.Result = new UnauthorizedObjectResult(new { message = "Missing or invalid authorization header" });
+                    context.Result = new UnauthorizedObjectResult(
+                        new { message = "Missing or invalid authorization header" }
+                    );
                     return;
                 }
 
                 var token = authHeader.Substring("Bearer ".Length).Trim();
 
                 // Validate token with profile service via gRPC
-                var userResponse = await _profileService.ValidateUserAsync(token);
+                var userResponse = await _profileService.ValidateAccountAsync(token);
 
-                if (!userResponse.Success)
+                _logger.LogWarning("User Response: {UserResponse}", userResponse);
+                if (userResponse == null || !userResponse.Success)
                 {
-                    _logger.LogWarning("Profile service validation failed: {Error}", userResponse.Error);
-                    context.Result = new UnauthorizedObjectResult(new { message = "Invalid user token" });
+                    _logger.LogWarning("Admin validation failed: {Message}", userResponse?.Message);
+                    // context.Result = new UnauthorizedResult();
+                    context.Result = new JsonResult(new { message = userResponse?.Message ?? "" })
+                    {
+                        StatusCode = StatusCodes.Status401Unauthorized,
+                    };
                     return;
                 }
+                _logger.LogInformation("Admin validated: {UserId}", userResponse.User?.UserId);
 
                 // Extract user info from response and add to context
-                context.HttpContext.Items["UserInfo"] = userResponse.User;
-                context.HttpContext.Items["UserId"] = userResponse.User?.UserId;
+                context.HttpContext.Items["user_id"] = userResponse.User?.UserId;
 
-                _logger.LogInformation("User validation successful for user: {UserId}", userResponse.User?.UserId);
+                _logger.LogInformation(
+                    "User validation successful for user: {UserId}",
+                    userResponse.User?.UserId
+                );
             }
             catch (Exception ex)
             {
@@ -54,4 +66,3 @@ namespace Comms.Guards
         }
     }
 }
-

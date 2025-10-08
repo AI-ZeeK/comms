@@ -1,6 +1,6 @@
-using Microsoft.AspNetCore.Mvc;
 using Comms.Constants;
 using Comms.Guards;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Comms.Controllers
 {
@@ -14,11 +14,9 @@ namespace Comms.Controllers
         public IActionResult UserOnly()
         {
             var userInfo = HttpContext.Items["UserInfo"];
-            return Ok(new
-            {
-                message = "This endpoint requires user authentication",
-                userInfo = userInfo
-            });
+            return Ok(
+                new { message = "This endpoint requires user authentication", userInfo = userInfo }
+            );
         }
 
         [HttpGet("admin-only")]
@@ -27,11 +25,13 @@ namespace Comms.Controllers
         public IActionResult AdminOnly()
         {
             var adminInfo = HttpContext.Items["AdminInfo"];
-            return Ok(new
-            {
-                message = "This endpoint requires admin authentication",
-                adminInfo = adminInfo
-            });
+            return Ok(
+                new
+                {
+                    message = "This endpoint requires admin authentication",
+                    adminInfo = adminInfo,
+                }
+            );
         }
 
         [HttpGet("public")]
@@ -41,4 +41,3 @@ namespace Comms.Controllers
         }
     }
 }
-

@@ -1,11 +1,11 @@
-using RabbitMQ.Client;
-using RabbitMQ.Client.Events;
-using Newtonsoft.Json;
 using System.Text;
-using Microsoft.Extensions.Options;
 using Comms.Data;
 using Comms.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
+using RabbitMQ.Client;
+using RabbitMQ.Client.Events;
 
 namespace Comms.Services
 {
@@ -17,7 +17,11 @@ namespace Comms.Services
         private readonly IServiceProvider _serviceProvider;
         private readonly ILogger<RabbitMQService> _logger;
 
-        public RabbitMQService(IConfiguration configuration, IServiceProvider serviceProvider, ILogger<RabbitMQService> logger)
+        public RabbitMQService(
+            IConfiguration configuration,
+            IServiceProvider serviceProvider,
+            ILogger<RabbitMQService> logger
+        )
         {
             _configuration = configuration;
             _serviceProvider = serviceProvider;
@@ -25,11 +29,23 @@ namespace Comms.Services
 
             var factory = new ConnectionFactory()
             {
-                HostName = Environment.ExpandEnvironmentVariables(_configuration["RabbitMQ:Host"] ?? "localhost"),
-                Port = int.Parse(Environment.ExpandEnvironmentVariables(_configuration["RabbitMQ:Port"] ?? "5672")),
-                UserName = Environment.ExpandEnvironmentVariables(_configuration["RabbitMQ:Username"] ?? "guest"),
-                Password = Environment.ExpandEnvironmentVariables(_configuration["RabbitMQ:Password"] ?? "guest"),
-                VirtualHost = Environment.ExpandEnvironmentVariables(_configuration["RabbitMQ:VirtualHost"] ?? "/")
+                HostName = Environment.ExpandEnvironmentVariables(
+                    _configuration["RabbitMQ:Host"] ?? "localhost"
+                ),
+                Port = int.Parse(
+                    Environment.ExpandEnvironmentVariables(
+                        _configuration["RabbitMQ:Port"] ?? "5672"
+                    )
+                ),
+                UserName = Environment.ExpandEnvironmentVariables(
+                    _configuration["RabbitMQ:Username"] ?? "guest"
+                ),
+                Password = Environment.ExpandEnvironmentVariables(
+                    _configuration["RabbitMQ:Password"] ?? "guest"
+                ),
+                VirtualHost = Environment.ExpandEnvironmentVariables(
+                    _configuration["RabbitMQ:VirtualHost"] ?? "/"
+                ),
             };
 
             _connection = factory.CreateConnection();
@@ -41,14 +57,18 @@ namespace Comms.Services
         private void SetupExchangesAndQueues()
         {
             // Declare exchanges
-            var exchanges = _configuration.GetSection("RabbitMQ:Exchanges").Get<Dictionary<string, string>>() ?? new();
+            var exchanges =
+                _configuration.GetSection("RabbitMQ:Exchanges").Get<Dictionary<string, string>>()
+                ?? new();
             foreach (var exchange in exchanges.Values)
             {
                 _channel.ExchangeDeclare(exchange, ExchangeType.Topic, durable: true);
             }
 
             // Declare queues
-            var queues = _configuration.GetSection("RabbitMQ:Queues").Get<Dictionary<string, string>>() ?? new();
+            var queues =
+                _configuration.GetSection("RabbitMQ:Queues").Get<Dictionary<string, string>>()
+                ?? new();
             foreach (var queue in queues.Values)
             {
                 _channel.QueueDeclare(queue, durable: true, exclusive: false, autoDelete: false);
@@ -57,7 +77,11 @@ namespace Comms.Services
             // Bind queues to exchanges
             _channel.QueueBind(queues["UserEvents"], exchanges["UserExchange"], "user.*");
             _channel.QueueBind(queues["ChatEvents"], exchanges["ChatExchange"], "chat.*");
-            _channel.QueueBind(queues["NotificationEvents"], exchanges["NotificationExchange"], "notification.*");
+            _channel.QueueBind(
+                queues["NotificationEvents"],
+                exchanges["NotificationExchange"],
+                "notification.*"
+            );
             _channel.QueueBind(queues["FileEvents"], exchanges["FileExchange"], "file.*");
         }
 
@@ -73,13 +97,18 @@ namespace Comms.Services
                 properties.Timestamp = new AmqpTimestamp(DateTimeOffset.UtcNow.ToUnixTimeSeconds());
 
                 _channel.BasicPublish(exchange, routingKey, properties, body);
-                
-                _logger.LogInformation($"Published message to {exchange} with routing key {routingKey}");
+
+                _logger.LogInformation(
+                    $"Published message to {exchange} with routing key {routingKey}"
+                );
                 await Task.CompletedTask;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error publishing message to {exchange} with routing key {routingKey}");
+                _logger.LogError(
+                    ex,
+                    $"Error publishing message to {exchange} with routing key {routingKey}"
+                );
                 throw;
             }
         }
@@ -88,13 +117,13 @@ namespace Comms.Services
         {
             var chatExchange = _configuration["RabbitMQ:Exchanges:ChatExchange"] ?? "chat.exchange";
             var routingKey = $"chat.{eventType}";
-            
+
             var message = new
             {
                 eventType = eventType,
                 data = eventData,
                 timestamp = DateTime.UtcNow,
-                source = "communications-service"
+                source = "communications-service",
             };
 
             await PublishMessageAsync(chatExchange, routingKey, message);
@@ -104,13 +133,13 @@ namespace Comms.Services
         {
             var userExchange = _configuration["RabbitMQ:Exchanges:UserExchange"] ?? "user.exchange";
             var routingKey = $"user.{eventType}";
-            
+
             var message = new
             {
                 eventType = eventType,
                 data = eventData,
                 timestamp = DateTime.UtcNow,
-                source = "communications-service"
+                source = "communications-service",
             };
 
             await PublishMessageAsync(userExchange, routingKey, message);
@@ -118,15 +147,17 @@ namespace Comms.Services
 
         public async Task PublishNotificationEventAsync(string eventType, object eventData)
         {
-            var notificationExchange = _configuration["RabbitMQ:Exchanges:NotificationExchange"] ?? "notification.exchange";
+            var notificationExchange =
+                _configuration["RabbitMQ:Exchanges:NotificationExchange"]
+                ?? "notification.exchange";
             var routingKey = $"notification.{eventType}";
-            
+
             var message = new
             {
                 eventType = eventType,
                 data = eventData,
                 timestamp = DateTime.UtcNow,
-                source = "communications-service"
+                source = "communications-service",
             };
 
             await PublishMessageAsync(notificationExchange, routingKey, message);
@@ -136,10 +167,10 @@ namespace Comms.Services
         {
             // Listen for user events
             ListenToQueue("user.events", HandleUserEvent);
-            
+
             // Listen for file events
             ListenToQueue("file.events", HandleFileEvent);
-            
+
             // Listen for notification events
             ListenToQueue("notification.events", HandleNotificationEvent);
 
@@ -155,9 +186,9 @@ namespace Comms.Services
                 {
                     var body = ea.Body.ToArray();
                     var message = Encoding.UTF8.GetString(body);
-                    
+
                     await messageHandler(message);
-                    
+
                     _channel.BasicAck(ea.DeliveryTag, false);
                 }
                 catch (Exception ex)
@@ -275,31 +306,31 @@ namespace Comms.Services
         {
             // Handle user deletion - cleanup user data
             string userIdStr = (string?)(eventData?.data?.userId?.ToString()) ?? "null";
-        if (!Guid.TryParse(userIdStr, out Guid userId))
-             {
-            _logger.LogWarning("Invalid userId in user.deleted event: {UserId}", userIdStr);
-            return;
-        }
+            if (!Guid.TryParse(userIdStr, out Guid userId))
+            {
+                _logger.LogWarning("Invalid userId in user.deleted event: {UserId}", userIdStr);
+                return;
+            }
 
-        using var scope = _serviceProvider.CreateScope();
-        var context = scope.ServiceProvider.GetRequiredService<CommunicationsDbContext>();
+            using var scope = _serviceProvider.CreateScope();
+            var context = scope.ServiceProvider.GetRequiredService<CommunicationsDbContext>();
 
-        // ✅ Now EF Core sees a real Guid, not dynamic
-        var participations = await context.ChatParticipants
-            .Where(cp => cp.UserId == userId)
-            .ToListAsync();
-
-        context.ChatParticipants.RemoveRange(participations);
-            
-            // // Remove user's push subscriptions
-            var subscriptions = await context.PushSubscriptions
-                .Where(ps => ps.UserId == userId)
+            // ✅ Now EF Core sees a real Guid, not dynamic
+            var participations = await context
+                .ChatParticipants.Where(cp => cp.UserId == userId)
                 .ToListAsync();
-            
+
+            context.ChatParticipants.RemoveRange(participations);
+
+            // // Remove user's push subscriptions
+            var subscriptions = await context
+                .PushSubscriptions.Where(ps => ps.UserId == userId)
+                .ToListAsync();
+
             context.PushSubscriptions.RemoveRange(subscriptions);
-            
+
             await context.SaveChangesAsync();
-            
+
             _logger.LogInformation($"Cleaned up data for deleted user: {userId}");
         }
 
@@ -308,14 +339,15 @@ namespace Comms.Services
             // Handle file upload completion - update message with file URL
             var fileUrl = eventData?.data?.fileUrl?.ToString();
             string messageId = (string?)(eventData?.data?.messageId?.ToString()) ?? "null";
-            
+
             if (!string.IsNullOrEmpty(fileUrl) && !string.IsNullOrEmpty(messageId))
             {
                 using var scope = _serviceProvider.CreateScope();
                 var context = scope.ServiceProvider.GetRequiredService<CommunicationsDbContext>();
 
-                var message = await context.Messages
-                    .FirstOrDefaultAsync(m => m.MessageId == Guid.Parse(messageId));
+                var message = await context.Messages.FirstOrDefaultAsync(m =>
+                    m.MessageId == Guid.Parse(messageId)
+                );
 
                 if (message != null)
                 {
@@ -334,14 +366,13 @@ namespace Comms.Services
             // Handle file deletion - remove file references from messages
             string fileUrl = (string?)(eventData?.data?.fileUrl?.ToString()) ?? "null";
 
-            
             if (!string.IsNullOrEmpty(fileUrl))
             {
                 using var scope = _serviceProvider.CreateScope();
                 var context = scope.ServiceProvider.GetRequiredService<CommunicationsDbContext>();
 
-                var messages = await context.Messages
-                    .Where(m => m.FileUrl == fileUrl)
+                var messages = await context
+                    .Messages.Where(m => m.FileUrl == fileUrl)
                     .ToListAsync();
 
                 foreach (var message in messages)
@@ -362,19 +393,19 @@ namespace Comms.Services
             // Handle push subscription from other services
             using var scope = _serviceProvider.CreateScope();
             var context = scope.ServiceProvider.GetRequiredService<CommunicationsDbContext>();
-            
+
             var subscription = new PushSubscription
             {
                 UserId = Guid.Parse(eventData?.data?.userId?.ToString() ?? ""),
                 Endpoint = eventData?.data?.endpoint?.ToString() ?? "",
                 P256dh = eventData?.data?.p256dh?.ToString(),
                 Auth = eventData?.data?.auth?.ToString(),
-                Platform = eventData?.data?.platform?.ToString() ?? "WEB"
+                Platform = eventData?.data?.platform?.ToString() ?? "WEB",
             };
-            
+
             context.PushSubscriptions.Add(subscription);
             await context.SaveChangesAsync();
-            
+
             _logger.LogInformation($"Added push subscription for user: {subscription.UserId}");
         }
 
@@ -389,4 +420,4 @@ namespace Comms.Services
             _connection?.Close();
         }
     }
-} 
+}

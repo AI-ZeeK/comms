@@ -1,6 +1,6 @@
-using Microsoft.AspNetCore.Mvc;
 using Comms.Constants;
 using Comms.Helpers;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Comms.Controllers
 {
@@ -21,7 +21,7 @@ namespace Comms.Controllers
                 PhoneNumber = "+1234567890",
                 CreatedAt = DateTime.UtcNow,
                 IsActive = true,
-                UserRole = "ADMIN"
+                UserRole = "ADMIN",
             };
 
             // This will be automatically converted to snake_case in JSON response
@@ -36,29 +36,33 @@ namespace Comms.Controllers
             //   "user_role": "admin"
             // }
 
-            return Ok(new
-            {
-                message = "Data will be automatically converted to snake_case",
-                data = userData,
-                note = "This ensures compatibility with NestJS microservices"
-            });
+            return Ok(
+                new
+                {
+                    message = "Data will be automatically converted to snake_case",
+                    data = userData,
+                    note = "This ensures compatibility with NestJS microservices",
+                }
+            );
         }
 
         [HttpPost("test-receive")]
         public IActionResult TestReceiveSnakeCase([FromBody] TestDto testData)
         {
             // This endpoint can receive snake_case JSON and automatically convert to PascalCase
-            return Ok(new
-            {
-                message = "Successfully received and converted snake_case to PascalCase",
-                received_data = testData,
-                converted_properties = new
+            return Ok(
+                new
                 {
-                    user_id = testData.UserId,
-                    first_name = testData.FirstName,
-                    email_address = testData.EmailAddress
+                    message = "Successfully received and converted snake_case to PascalCase",
+                    received_data = testData,
+                    converted_properties = new
+                    {
+                        user_id = testData.UserId,
+                        first_name = testData.FirstName,
+                        email_address = testData.EmailAddress,
+                    },
                 }
-            });
+            );
         }
     }
 

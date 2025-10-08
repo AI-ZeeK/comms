@@ -5,14 +5,14 @@ namespace Comms.Models
         READ,
         DELIVERED,
         PENDING,
-        SENT
+        SENT,
     }
 
     public enum ChatType
     {
         DIRECT,
         GROUP,
-        CHANNEL
+        CHANNEL,
     }
 
     public enum MessageType
@@ -23,7 +23,7 @@ namespace Comms.Models
         VIDEO,
         FILE,
         LOCATION,
-        SYSTEM
+        SYSTEM,
     }
 
     public enum MessageStatus
@@ -31,6 +31,18 @@ namespace Comms.Models
         PENDING,
         SENT,
         DELIVERED,
-        READ
+        READ,
     }
-} 
+
+    public enum UserType
+    {
+        ADMIN,
+        USER,
+    }
+
+    public enum NotificationType
+    {
+        CHAT_CREATED,
+        NEW_MESSAGE,
+    }
+}

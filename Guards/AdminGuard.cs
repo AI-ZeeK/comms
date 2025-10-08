@@ -1,9 +1,9 @@
+using System.IdentityModel.Tokens.Jwt;
+using System.Net.Http.Headers;
+using Comms.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
-using System.Net.Http.Headers;
-using System.IdentityModel.Tokens.Jwt;
-using Comms.Services;
 
 namespace Comms.Guards
 {
@@ -23,11 +23,15 @@ namespace Comms.Guards
             try
             {
                 // Get JWT token from Authorization header
-                var authHeader = context.HttpContext.Request.Headers["Authorization"].FirstOrDefault();
+                var authHeader = context
+                    .HttpContext.Request.Headers["Authorization"]
+                    .FirstOrDefault();
 
                 if (authHeader == null || !authHeader.StartsWith("Bearer "))
                 {
-                    context.Result = new UnauthorizedObjectResult(new { message = "Missing or invalid authorization header" });
+                    context.Result = new UnauthorizedObjectResult(
+                        new { message = "Missing or invalid authorization header" }
+                    );
                     return;
                 }
                 _logger.LogInformation("Auth Header: {AuthHeader}", authHeader);
@@ -42,14 +46,12 @@ namespace Comms.Guards
                     // context.Result = new UnauthorizedResult();
                     context.Result = new JsonResult(new { message = userResponse?.Message ?? "" })
                     {
-                        StatusCode = StatusCodes.Status401Unauthorized
+                        StatusCode = StatusCodes.Status401Unauthorized,
                     };
                     return;
-
                 }
                 _logger.LogInformation("Admin validated: {UserId}", userResponse.User?.UserId);
-               // Add user info to context for use in controllers
-                context.HttpContext.Items["AdminInfo"] = userResponse;
+                // Add user info to context for use in controllers
                 context.HttpContext.Items["user_id"] = userResponse.User?.UserId;
 
                 // _logger.LogInformation("Admin validation successful for store: {StoreId}", userId);
@@ -62,4 +64,3 @@ namespace Comms.Guards
         }
     }
 }
-

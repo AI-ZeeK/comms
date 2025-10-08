@@ -8,6 +8,7 @@ package profile;
 // 👤 Profile Service - handles user profiles and user management
 service ProfileService {
   // user services
+  rpc ValidateAccount(ValidateAccountRequest) returns (ValidateAccountResponse);
   rpc Register(RegisterRequest) returns (AuthInitialResponse);
   rpc Login(LoginRequest) returns (AuthInitialResponse);
   rpc SendOtp(SendOtpRequest) returns (SendOtpResponse);
@@ -30,6 +31,16 @@ service ProfileService {
 
   rpc FetchOrganizationRoles(OrganizationRoleIdRequest) returns (FetchOrganizationRolesResponse);
   rpc FetchOrganizationRolesCount(OrganizationRoleIdRequest) returns (FetchOrganizationRolesCountResponse);
+}
+
+message ValidateAccountRequest {
+  string token = 1;
+}
+
+message ValidateAccountResponse {
+  User user = 1;
+  bool success = 2;
+  string message = 3;
 }
 
 

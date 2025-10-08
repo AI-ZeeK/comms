@@ -1,9 +1,9 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Comms.Models    
+namespace Comms.Models
 {
-    [Table("vapid_keys", Schema = "communications")]
+    [Table("vapid_keys", Schema = "notifications")]
     public class VapidKeys
     {
         [Key]
@@ -19,4 +19,4 @@ namespace Comms.Models
         [Column("updated_at")]
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
     }
-} 
+}

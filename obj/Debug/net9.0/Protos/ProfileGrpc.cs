@@ -49,6 +49,10 @@ namespace Profile {
     }
 
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Profile.ValidateAccountRequest> __Marshaller_profile_ValidateAccountRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Profile.ValidateAccountRequest.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Profile.ValidateAccountResponse> __Marshaller_profile_ValidateAccountResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Profile.ValidateAccountResponse.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static readonly grpc::Marshaller<global::Profile.RegisterRequest> __Marshaller_profile_RegisterRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Profile.RegisterRequest.Parser));
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static readonly grpc::Marshaller<global::Profile.AuthInitialResponse> __Marshaller_profile_AuthInitialResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Profile.AuthInitialResponse.Parser));
@@ -104,6 +108,14 @@ namespace Profile {
     static readonly grpc::Marshaller<global::Profile.FetchOrganizationRolesResponse> __Marshaller_profile_FetchOrganizationRolesResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Profile.FetchOrganizationRolesResponse.Parser));
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static readonly grpc::Marshaller<global::Profile.FetchOrganizationRolesCountResponse> __Marshaller_profile_FetchOrganizationRolesCountResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Profile.FetchOrganizationRolesCountResponse.Parser));
+
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Method<global::Profile.ValidateAccountRequest, global::Profile.ValidateAccountResponse> __Method_ValidateAccount = new grpc::Method<global::Profile.ValidateAccountRequest, global::Profile.ValidateAccountResponse>(
+        grpc::MethodType.Unary,
+        __ServiceName,
+        "ValidateAccount",
+        __Marshaller_profile_ValidateAccountRequest,
+        __Marshaller_profile_ValidateAccountResponse);
 
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static readonly grpc::Method<global::Profile.RegisterRequest, global::Profile.AuthInitialResponse> __Method_Register = new grpc::Method<global::Profile.RegisterRequest, global::Profile.AuthInitialResponse>(
@@ -275,9 +287,9 @@ namespace Profile {
       /// <param name="cancellationToken">An optional token for canceling the call.</param>
       /// <returns>The response received from the server.</returns>
       [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
-      public virtual global::Profile.AuthInitialResponse Register(global::Profile.RegisterRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      public virtual global::Profile.ValidateAccountResponse ValidateAccount(global::Profile.ValidateAccountRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
       {
-        return Register(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+        return ValidateAccount(request, new grpc::CallOptions(headers, deadline, cancellationToken));
       }
       /// <summary>
       /// user services
@@ -286,9 +298,9 @@ namespace Profile {
       /// <param name="options">The options for the call.</param>
       /// <returns>The response received from the server.</returns>
       [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
-      public virtual global::Profile.AuthInitialResponse Register(global::Profile.RegisterRequest request, grpc::CallOptions options)
+      public virtual global::Profile.ValidateAccountResponse ValidateAccount(global::Profile.ValidateAccountRequest request, grpc::CallOptions options)
       {
-        return CallInvoker.BlockingUnaryCall(__Method_Register, null, options, request);
+        return CallInvoker.BlockingUnaryCall(__Method_ValidateAccount, null, options, request);
       }
       /// <summary>
       /// user services
@@ -299,9 +311,9 @@ namespace Profile {
       /// <param name="cancellationToken">An optional token for canceling the call.</param>
       /// <returns>The call object.</returns>
       [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
-      public virtual grpc::AsyncUnaryCall<global::Profile.AuthInitialResponse> RegisterAsync(global::Profile.RegisterRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      public virtual grpc::AsyncUnaryCall<global::Profile.ValidateAccountResponse> ValidateAccountAsync(global::Profile.ValidateAccountRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
       {
-        return RegisterAsync(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+        return ValidateAccountAsync(request, new grpc::CallOptions(headers, deadline, cancellationToken));
       }
       /// <summary>
       /// user services
@@ -309,6 +321,26 @@ namespace Profile {
       /// <param name="request">The request to send to the server.</param>
       /// <param name="options">The options for the call.</param>
       /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Profile.ValidateAccountResponse> ValidateAccountAsync(global::Profile.ValidateAccountRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.AsyncUnaryCall(__Method_ValidateAccount, null, options, request);
+      }
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Profile.AuthInitialResponse Register(global::Profile.RegisterRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return Register(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Profile.AuthInitialResponse Register(global::Profile.RegisterRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.BlockingUnaryCall(__Method_Register, null, options, request);
+      }
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Profile.AuthInitialResponse> RegisterAsync(global::Profile.RegisterRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return RegisterAsync(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
       [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
       public virtual grpc::AsyncUnaryCall<global::Profile.AuthInitialResponse> RegisterAsync(global::Profile.RegisterRequest request, grpc::CallOptions options)
       {

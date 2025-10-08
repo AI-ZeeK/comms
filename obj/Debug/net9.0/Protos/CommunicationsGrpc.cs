@@ -80,6 +80,8 @@ namespace Comms.Grpc {
     static readonly grpc::Marshaller<global::Comms.Grpc.PushSubscriptionResponse> __Marshaller_communications_PushSubscriptionResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Comms.Grpc.PushSubscriptionResponse.Parser));
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static readonly grpc::Marshaller<global::Comms.Grpc.RemovePushSubscriptionRequest> __Marshaller_communications_RemovePushSubscriptionRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Comms.Grpc.RemovePushSubscriptionRequest.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Comms.Grpc.PushSubscriptionRequest> __Marshaller_communications_PushSubscriptionRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Comms.Grpc.PushSubscriptionRequest.Parser));
 
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static readonly grpc::Method<global::Comms.Grpc.CreateChatRequest, global::Comms.Grpc.ChatResponse> __Method_CreateChat = new grpc::Method<global::Comms.Grpc.CreateChatRequest, global::Comms.Grpc.ChatResponse>(
@@ -151,6 +153,22 @@ namespace Comms.Grpc {
         __ServiceName,
         "RemovePushSubscription",
         __Marshaller_communications_RemovePushSubscriptionRequest,
+        __Marshaller_communications_PushSubscriptionResponse);
+
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Method<global::Comms.Grpc.PushSubscriptionRequest, global::Comms.Grpc.PushSubscriptionResponse> __Method_SendAdminNotification = new grpc::Method<global::Comms.Grpc.PushSubscriptionRequest, global::Comms.Grpc.PushSubscriptionResponse>(
+        grpc::MethodType.Unary,
+        __ServiceName,
+        "SendAdminNotification",
+        __Marshaller_communications_PushSubscriptionRequest,
+        __Marshaller_communications_PushSubscriptionResponse);
+
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Method<global::Comms.Grpc.PushSubscriptionRequest, global::Comms.Grpc.PushSubscriptionResponse> __Method_SendUserNotification = new grpc::Method<global::Comms.Grpc.PushSubscriptionRequest, global::Comms.Grpc.PushSubscriptionResponse>(
+        grpc::MethodType.Unary,
+        __ServiceName,
+        "SendUserNotification",
+        __Marshaller_communications_PushSubscriptionRequest,
         __Marshaller_communications_PushSubscriptionResponse);
 
     /// <summary>Service descriptor</summary>
@@ -235,6 +253,18 @@ namespace Comms.Grpc {
         throw new grpc::RpcException(new grpc::Status(grpc::StatusCode.Unimplemented, ""));
       }
 
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::System.Threading.Tasks.Task<global::Comms.Grpc.PushSubscriptionResponse> SendAdminNotification(global::Comms.Grpc.PushSubscriptionRequest request, grpc::ServerCallContext context)
+      {
+        throw new grpc::RpcException(new grpc::Status(grpc::StatusCode.Unimplemented, ""));
+      }
+
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::System.Threading.Tasks.Task<global::Comms.Grpc.PushSubscriptionResponse> SendUserNotification(global::Comms.Grpc.PushSubscriptionRequest request, grpc::ServerCallContext context)
+      {
+        throw new grpc::RpcException(new grpc::Status(grpc::StatusCode.Unimplemented, ""));
+      }
+
     }
 
     /// <summary>Creates service definition that can be registered with a server</summary>
@@ -251,7 +281,9 @@ namespace Comms.Grpc {
           .AddMethod(__Method_AddParticipant, serviceImpl.AddParticipant)
           .AddMethod(__Method_RemoveParticipant, serviceImpl.RemoveParticipant)
           .AddMethod(__Method_AddPushSubscription, serviceImpl.AddPushSubscription)
-          .AddMethod(__Method_RemovePushSubscription, serviceImpl.RemovePushSubscription).Build();
+          .AddMethod(__Method_RemovePushSubscription, serviceImpl.RemovePushSubscription)
+          .AddMethod(__Method_SendAdminNotification, serviceImpl.SendAdminNotification)
+          .AddMethod(__Method_SendUserNotification, serviceImpl.SendUserNotification).Build();
     }
 
     /// <summary>Register service method with a service binder with or without implementation. Useful when customizing the service binding logic.
@@ -270,6 +302,8 @@ namespace Comms.Grpc {
       serviceBinder.AddMethod(__Method_RemoveParticipant, serviceImpl == null ? null : new grpc::UnaryServerMethod<global::Comms.Grpc.RemoveParticipantRequest, global::Comms.Grpc.ParticipantResponse>(serviceImpl.RemoveParticipant));
       serviceBinder.AddMethod(__Method_AddPushSubscription, serviceImpl == null ? null : new grpc::UnaryServerMethod<global::Comms.Grpc.AddPushSubscriptionRequest, global::Comms.Grpc.PushSubscriptionResponse>(serviceImpl.AddPushSubscription));
       serviceBinder.AddMethod(__Method_RemovePushSubscription, serviceImpl == null ? null : new grpc::UnaryServerMethod<global::Comms.Grpc.RemovePushSubscriptionRequest, global::Comms.Grpc.PushSubscriptionResponse>(serviceImpl.RemovePushSubscription));
+      serviceBinder.AddMethod(__Method_SendAdminNotification, serviceImpl == null ? null : new grpc::UnaryServerMethod<global::Comms.Grpc.PushSubscriptionRequest, global::Comms.Grpc.PushSubscriptionResponse>(serviceImpl.SendAdminNotification));
+      serviceBinder.AddMethod(__Method_SendUserNotification, serviceImpl == null ? null : new grpc::UnaryServerMethod<global::Comms.Grpc.PushSubscriptionRequest, global::Comms.Grpc.PushSubscriptionResponse>(serviceImpl.SendUserNotification));
     }
 
   }

@@ -3,6 +3,7 @@ using System;
 using Comms.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace comms.Migrations
 {
     [DbContext(typeof(CommunicationsDbContext))]
-    partial class CommunicationsDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251008202427_AddNotificationsModifySchemas")]
+    partial class AddNotificationsModifySchemas
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -252,53 +255,6 @@ namespace comms.Migrations
                         .IsUnique();
 
                     b.ToTable("meta_data", "admin");
-                });
-
-            modelBuilder.Entity("Comms.Models.Notification", b =>
-                {
-                    b.Property<Guid>("NotificationId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("notification_id");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
-
-                    b.Property<string>("LinkUrl")
-                        .HasColumnType("text")
-                        .HasColumnName("link_url");
-
-                    b.Property<Guid?>("RecipientUserId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("recipient_user_id");
-
-                    b.Property<Guid?>("SenderUserId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("sender_user_id");
-
-                    b.Property<string>("Text")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("text");
-
-                    b.Property<int>("Type")
-                        .HasColumnType("integer")
-                        .HasColumnName("notification_type");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("updated_at");
-
-                    b.HasKey("NotificationId");
-
-                    b.HasIndex("RecipientUserId");
-
-                    b.HasIndex("SenderUserId");
-
-                    b.HasIndex("Type");
-
-                    b.ToTable("notification", "notifications");
                 });
 
             modelBuilder.Entity("Comms.Models.PushSubscription", b =>

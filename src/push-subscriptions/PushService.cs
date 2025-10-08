@@ -3,10 +3,7 @@ using Comms.Constants;
 using Comms.Data;
 using Comms.Models;
 using Comms.Models.DTOs;
-using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using WebPush;
 
 namespace Comms.Services
@@ -35,19 +32,70 @@ namespace Comms.Services
             return existingKey?.PublicKey ?? "No Key Set";
         }
 
+        public async Task SendAdminNotificationToUserAsync(
+            string userId,
+            string title,
+            string body,
+            NotificationData data
+        // Dictionary<string, string>? data = null
+        )
+        {
+            if (!Guid.TryParse(userId, out var userGuid))
+            {
+                throw new ArgumentException("Invalid user ID");
+            }
+
+            var subscriptions = await _context
+                .PushSubscriptions.Where(s => s.UserId == userGuid && s.UserType == UserType.ADMIN)
+                .ToListAsync();
+
+            if (!subscriptions.Any())
+            {
+                _logger.LogWarning($"No push subscriptions found for user {userId}");
+                return;
+            }
+
+            foreach (var sub in subscriptions)
+            {
+                try
+                {
+                    if (sub.Platform == PushSubscriptionPlatform.WEB)
+                    {
+                        await SendWebPushAsync(sub, title, body, data);
+                    }
+                    else if (
+                        sub.Platform == PushSubscriptionPlatform.ANDROID
+                        || sub.Platform == PushSubscriptionPlatform.IOS
+                    )
+                    {
+                        // Call your Expo/Firebase push method
+                        // await SendMobilePushAsync(sub.Endpoint, title, body, data);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(
+                        ex,
+                        $"Failed to send notification to user {userId}, subscription {sub.SubscriptionId}"
+                    );
+                    if (ex.Message.Contains("410")) // expired
+                    {
+                        _context.PushSubscriptions.Remove(sub);
+                        await _context.SaveChangesAsync();
+                        _logger.LogWarning($"Deleted expired subscription {sub.SubscriptionId}");
+                    }
+                }
+            }
+        }
+
         public async Task SendNotificationToUserAsync(
             string userId,
             string title,
             string body,
-            Dictionary<string, string>? data = null
+            NotificationData data
+        // Dictionary<string, string>? data = null
         )
         {
-            //       string userIdStr = (string?)(userId?.ToString()) ?? "null";
-            // if (!Guid.TryParse(userIdStr, out Guid userId))
-            //      {
-            //     _logger.LogWarning("Invalid userId in user.deleted event: {UserId}", userIdStr);
-            //     return;
-            // }
             if (!Guid.TryParse(userId, out var userGuid))
             {
                 // Handle invalid GUID
@@ -55,7 +103,7 @@ namespace Comms.Services
             }
 
             var subscriptions = await _context
-                .PushSubscriptions.Where(s => s.UserId == userGuid)
+                .PushSubscriptions.Where(s => s.UserId == userGuid && s.UserType == UserType.USER)
                 .ToListAsync();
 
             if (!subscriptions.Any())
@@ -101,7 +149,7 @@ namespace Comms.Services
             Models.PushSubscription sub,
             string title,
             string body,
-            Dictionary<string, string>? data
+            NotificationData data
         )
         {
             var subscription = new WebPush.PushSubscription
@@ -111,19 +159,43 @@ namespace Comms.Services
                 Auth = sub.Auth,
             };
 
+            var Notification = await _context.Notification.AddAsync(
+                new Notification
+                {
+                    RecipientUserId = sub.UserId,
+                    SenderUserId = Guid.TryParse(data?.SenderId, out var senderGuid)
+                        ? senderGuid
+                        : null,
+                    Text = body,
+                    Type = data?.EntityType ?? NotificationType.NEW_MESSAGE,
+                    LinkUrl = data?.EntityId,
+                    CreatedAt = DateTime.UtcNow,
+                }
+            );
+
             var payload = new
             {
                 title,
                 body,
                 icon = "/icon-192x192.png",
                 badge = "/badge.png",
-                data = data ?? new Dictionary<string, string>(),
+                tag = $"{data?.EntityType}_{data?.EntityId}", // e.g., "chat_12345"
+                data = new
+                {
+                    notification_id = Notification.Entity.NotificationId,
+                    entity_id = data?.EntityId,
+                    sender_id = data?.SenderId,
+                    sender_name = data?.SenderName,
+                    entity_type = data?.EntityType,
+                    created_at = Notification.Entity.CreatedAt,
+                },
             };
 
             var jsonPayload = JsonSerializer.Serialize(payload);
             var vapidKey = (await GetVapidPublicKey())?.ToString() ?? "";
             var client = new WebPushClient();
             await client.SendNotificationAsync(subscription, jsonPayload, vapidKey);
+            _logger.LogInformation("Sent web push notification to {Endpoint}", sub.Endpoint);
         }
 
         public async Task SavePushSubscription(PushSubscriptionDto pushSubscription)
