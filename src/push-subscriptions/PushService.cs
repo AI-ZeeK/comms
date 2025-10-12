@@ -178,7 +178,8 @@ namespace Comms.Services
                 title,
                 body,
                 icon = "/icon-192x192.png",
-                badge = "/badge.png",
+                badge = "https://djengo-web.vercel.app/_next/image?url=%2Fdjengo-logo.png&w=256&q=75",
+                // badge = "/badge.png",
                 tag = $"{data?.EntityType}_{data?.EntityId}", // e.g., "chat_12345"
                 data = new
                 {
@@ -186,6 +187,7 @@ namespace Comms.Services
                     entity_id = data?.EntityId,
                     sender_id = data?.SenderId,
                     sender_name = data?.SenderName,
+                    sender_avatar = data?.SenderAvatar,
                     entity_type = data?.EntityType,
                     created_at = Notification.Entity.CreatedAt,
                 },

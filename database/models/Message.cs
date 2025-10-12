@@ -14,7 +14,7 @@ namespace Comms.Models
         public Guid ChatId { get; set; }
 
         [Column("sender_id")]
-        public Guid SenderId { get; set; }
+        public Guid? SenderId { get; set; }
 
         [Column("content")]
         public string Content { get; set; } = string.Empty;
@@ -51,10 +51,14 @@ namespace Comms.Models
         [Column("file_type")]
         public string? FileType { get; set; }
 
+        [NotMapped]
+        public object? Sender { get; set; }
+
         // Navigation properties
         [ForeignKey("ChatId")]
         public virtual Chat Chat { get; set; } = null!;
-        
-        public virtual ICollection<MessageRead> ReadReceipts { get; set; } = new List<MessageRead>();
+
+        public virtual ICollection<MessageRead> ReadReceipts { get; set; } =
+            new List<MessageRead>();
     }
-} 
+}

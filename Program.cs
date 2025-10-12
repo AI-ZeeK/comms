@@ -51,7 +51,16 @@ builder.Services.AddEndpointsApiExplorer();
 // builder.Services.AddSwaggerGen();
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new() { Title = "Comms API", Version = "v1" });
+    c.SwaggerDoc(
+        "v1",
+        new()
+        {
+            Title = "Comms API",
+            Version = "v1",
+            Description =
+                "<b>SignalR Hubs:</b> <a href='/signalr-hubs.md' target='_blank'>SignalR Hubs Documentation</a>",
+        }
+    );
 
     // Add JWT Bearer support
     c.AddSecurityDefinition(
@@ -98,13 +107,16 @@ builder
     );
 builder.Services.AddSingleton<IConnectionMultiplexer>(ConnectionMultiplexer.Connect(redis_url));
 
-builder.Services.AddSingleton<UserService>();
 builder.Services.AddScoped<PushService>();
 builder.Services.AddScoped<Admin_Service>();
+builder.Services.AddScoped<ChatService>();
 
 // Add gRPC services
 builder.Services.AddScoped<IAdminGrpcService, AdminGrpcService>();
 builder.Services.AddScoped<IProfileGrpcService, ProfileGrpcService>();
+
+// Register RedisConnectionTracker for IConnectionTracker
+builder.Services.AddSingleton<IConnectionTracker, RedisConnectionTracker>();
 
 // Add guards
 builder.Services.AddScoped<UserGuard>();
@@ -143,6 +155,17 @@ builder.Services.AddCors(options =>
         }
     );
 });
+
+// builder.Services.AddCors(options =>
+// {
+//     options.AddPolicy(
+//         "AllowAll",
+//         policy =>
+//         {
+//             policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
+//         }
+//     );
+// });
 
 // Add JWT Authentication
 var jwtSettings = builder.Configuration.GetSection("JWT");
@@ -187,7 +210,14 @@ builder
             {
                 var accessToken = context.Request.Query["access_token"];
                 var path = context.HttpContext.Request.Path;
-                if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/chathub"))
+                // Accept token for both SignalR hubs
+                if (
+                    !string.IsNullOrEmpty(accessToken)
+                    && (
+                        path.StartsWithSegments("/chat-list-hub")
+                        || path.StartsWithSegments("/chat-room-hub")
+                    )
+                )
                 {
                     context.Token = accessToken;
                 }
@@ -256,12 +286,55 @@ if (app.Environment.IsDevelopment())
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "Comms API v1");
         c.RoutePrefix = "docs"; // You can access it at https://localhost:5001/docs
     });
+    // Serve the static markdown file
+    // app.UseStaticFiles();
 }
 
-app.UseHttpsRedirection();
+// app.UseHttpsRedirection();
 
 // Use CORS before authentication
 app.UseCors("AllowSpecificOrigins");
+
+// Add request logging for debugging CORS and pipeline issues
+app.Use(
+    async (context, next) =>
+    {
+        var logger = app.Services.GetRequiredService<ILogger<Program>>();
+        logger.LogInformation(
+            $"Request: {context.Request.Method} {context.Request.Path} Origin: {context.Request.Headers["Origin"]}"
+        );
+        await next();
+    }
+);
+
+// Add explicit OPTIONS handler for debugging
+app.Use(
+    async (context, next) =>
+    {
+        if (context.Request.Method == "OPTIONS")
+        {
+            var logger = app.Services.GetRequiredService<ILogger<Program>>();
+            logger.LogInformation($"OPTIONS request to {context.Request.Path} - responding 200");
+            context.Response.StatusCode = 200;
+            context.Response.Headers.Add(
+                "Access-Control-Allow-Origin",
+                context.Request.Headers["Origin"]
+            );
+            context.Response.Headers.Add(
+                "Access-Control-Allow-Methods",
+                "GET,POST,PUT,DELETE,OPTIONS"
+            );
+            context.Response.Headers.Add(
+                "Access-Control-Allow-Headers",
+                "Content-Type, Authorization, X-Requested-With"
+            );
+            context.Response.Headers.Add("Access-Control-Allow-Credentials", "true");
+            await context.Response.CompleteAsync();
+            return;
+        }
+        await next();
+    }
+);
 
 // Use authentication and authorization
 app.UseAuthentication();
@@ -271,16 +344,8 @@ app.UseAuthorization();
 app.MapControllers();
 
 // Map SignalR hub
-app.MapHub<ChatHub>("/chathub");
-
-app.MapGet(
-    "/user",
-    (UserService userService) =>
-    {
-        var user = userService.GetDummyUser();
-        return Results.Ok(user);
-    }
-);
+app.MapHub<ChatRoomHub>("/chat-room-hub");
+app.MapHub<ChatListHub>("/chat-list-hub");
 
 // Health check endpoint
 // app.MapGet("/", () => "Communications Service is running");

@@ -20,7 +20,7 @@ namespace Comms.Controllers
             _pushService = pushService ?? throw new ArgumentNullException(nameof(pushService));
         }
 
-        [HttpPost("/admin/subscribe")]
+        [HttpPost("admin/subscribe")]
         [ServiceFilter(typeof(AdminGuard))]
         public async Task<IActionResult> AdminSubscribe(
             [FromBody] PushSubscriptionDto pushSubscription

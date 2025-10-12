@@ -9,7 +9,7 @@ namespace Comms.Data
             : base(options) { }
 
         public DbSet<Chat> Chats { get; set; }
-        public DbSet<ChatParticipant> ChatParticipants { get; set; }
+        public DbSet<ChatParticipant> ChatParticipant { get; set; }
         public DbSet<Message> Messages { get; set; }
         public DbSet<MessageRead> MessageReads { get; set; }
         public DbSet<UnreadMessageCount> UnreadMessageCounts { get; set; }
@@ -46,6 +46,7 @@ namespace Comms.Data
             modelBuilder.Entity<Notification>().HasIndex(cp => cp.RecipientUserId);
             modelBuilder.Entity<Notification>().HasIndex(cp => cp.SenderUserId);
             modelBuilder.Entity<Notification>().HasIndex(cp => cp.Type);
+            modelBuilder.Entity<Notification>().HasIndex(cp => cp.IsRead);
 
             modelBuilder.Entity<ChatParticipant>().HasIndex(cp => cp.UserId);
 

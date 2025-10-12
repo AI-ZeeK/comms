@@ -181,3 +181,5 @@ C:\Users\user\OneDrive\Documents\Code\DJENGO\backend\comms\bin\Debug\net9.0\Pipe
 C:\Users\user\OneDrive\Documents\Code\DJENGO\backend\comms\bin\Debug\net9.0\StackExchange.Redis.dll
 C:\Users\user\OneDrive\Documents\Code\DJENGO\backend\comms\bin\Debug\net9.0\DotNetEnv.dll
 C:\Users\user\OneDrive\Documents\Code\DJENGO\backend\comms\bin\Debug\net9.0\Sprache.dll
+C:\Users\user\OneDrive\Documents\Code\DJENGO\backend\comms\bin\Debug\net9.0\comms.staticwebassets.runtime.json
+C:\Users\user\OneDrive\Documents\Code\DJENGO\backend\comms\obj\Debug\net9.0\compressed\rzcu273eon-c5vksv52el.gz

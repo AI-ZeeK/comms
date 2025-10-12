@@ -35,10 +35,8 @@ namespace Comms.Services
                 && !profileServiceUrl.StartsWith("https://")
             )
             {
-                profileServiceUrl = $"http://{profileServiceUrl}";
+                profileServiceUrl = $"http://localhost:50051";
             }
-
-            _logger.LogInformation("Connecting to Profile Service at: {Url}", profileServiceUrl);
 
             var channel = GrpcChannel.ForAddress(profileServiceUrl);
             _client = new ProfileService.ProfileServiceClient(channel);
@@ -51,10 +49,15 @@ namespace Comms.Services
                 // For now, we'll use GetUser to validate user access
                 // You might need to implement a specific user validation method
                 var request = new ValidateAccountRequest { Token = token };
-                return await _client.ValidateAccountAsync(request);
+                var texted = await _client.ValidateAccountAsync(request);
+                return texted;
             }
             catch (RpcException ex)
             {
+                _logger.LogInformation(
+                    "RPC Exception during token validation: {Message}",
+                    ex.Message
+                );
                 return new ValidateAccountResponse
                 {
                     Success = false,
@@ -69,6 +72,7 @@ namespace Comms.Services
         {
             try
             {
+                _logger.LogInformation("Fetching user details for UserId: {UserId}", userId);
                 var request = new GetUserRequest { UserId = userId };
                 return await _client.GetUserAsync(request);
             }

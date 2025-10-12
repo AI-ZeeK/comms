@@ -35,6 +35,7 @@ namespace Comms.Models.DTOs
         public string EntityId { get; set; } = string.Empty;
         public string SenderId { get; set; } = string.Empty;
         public string SenderName { get; set; } = string.Empty;
+        public string SenderAvatar { get; set; } = string.Empty;
         public NotificationType EntityType { get; set; } // optional, if you may add more later
     }
 }

@@ -29,7 +29,8 @@ message NotificationData {
   string entity_id = 1;
   string sender_id = 2;
   string sender_name = 3;
-  NotificationType entity_type = 4; // optional, if you may add more later
+  string sender_avatar = 4;
+  NotificationType entity_type = 5; // optional, if you may add more later
 }
 
 

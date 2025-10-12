@@ -317,10 +317,10 @@ namespace Comms.Services
 
             // ✅ Now EF Core sees a real Guid, not dynamic
             var participations = await context
-                .ChatParticipants.Where(cp => cp.UserId == userId)
+                .ChatParticipant.Where(cp => cp.UserId == userId)
                 .ToListAsync();
 
-            context.ChatParticipants.RemoveRange(participations);
+            context.ChatParticipant.RemoveRange(participations);
 
             // // Remove user's push subscriptions
             var subscriptions = await context

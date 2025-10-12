@@ -50,8 +50,19 @@ namespace Comms.Guards
                 }
                 _logger.LogInformation("Admin validated: {UserId}", userResponse.User?.UserId);
 
-                // Extract user info from response and add to context
+                var user = userResponse.User;
+
+                var username =
+                    !string.IsNullOrWhiteSpace(user?.FirstName)
+                    && !string.IsNullOrWhiteSpace(user?.LastName)
+                        ? $"{user.FirstName} {user.LastName}"
+                    : !string.IsNullOrWhiteSpace(user?.Email) ? user.Email
+                    : "";
+                var avatar_url = !string.IsNullOrWhiteSpace(user?.AvatarUrl) ? user.AvatarUrl : "";
+                // Add user info to context for use in controllers
                 context.HttpContext.Items["user_id"] = userResponse.User?.UserId;
+                context.HttpContext.Items["avatar_url"] = avatar_url;
+                context.HttpContext.Items["username"] = username;
 
                 _logger.LogInformation(
                     "User validation successful for user: {UserId}",
